@@ -28,36 +28,50 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Download the file
     file_path = await file.download_to_drive(f'./{document.file_name}')
+    logger.info(f"File downloaded to: {file_path}")
 
-    # Read the file contents
-    with open(file_path, 'rb') as f:
-        byte_content = f.read()
+    try:
+        # Read the file contents as bytes
+        with open(file_path, 'rb') as f:
+            byte_content = f.read()
+            logger.info(f"Read {len(byte_content)} bytes from the file.")
 
-    # Convert the file to a C++ header file
-    file_name = document.file_name.replace('.', '_').upper() + "_H"
-    header_content = f"#pragma once\n#include <cstdint>\n\n"
-    header_content += f"/**\n * @author Reo_47\n * Telegram : Reohecks\n */\n\n"
-    header_content += f"const std::uint8_t {file_name}[] = {{\n"
+        # Convert the file to a C++ header file
+        file_name = document.file_name.replace('.', '_').upper() + "_H"
+        header_content = f"#pragma once\n#include <cstdint>\n\n"
+        header_content += f"/**\n * @author Reo_47\n * Telegram : Reohecks\n */\n\n"
+        header_content += f"const std::uint8_t {file_name}[] = {{\n"
 
-    byte_array = bytearray(byte_content)
-    for i, byte in enumerate(byte_array):
-        header_content += f"0x{byte:02x}, "
-        if (i + 1) % 12 == 0:
-            header_content += "\n"
+        byte_array = bytearray(byte_content)
+        for i, byte in enumerate(byte_array):
+            header_content += f"0x{byte:02x}, "
+            if (i + 1) % 12 == 0:
+                header_content += "\n"
 
-    header_content = header_content.rstrip(', ') + "\n};\n"
+        header_content = header_content.rstrip(', ') + "\n};\n"
 
-    # Save the header file temporarily
-    header_file_path = f"./{file_name}.h"
-    with open(header_file_path, 'w') as header_file:
-        header_file.write(header_content)
+        # Log the generated header content for debugging
+        logger.info(f"Generated header content:\n{header_content}")
 
-    # Send back the converted header file
-    await update.message.reply_document(document=InputFile(header_file_path))
+        # Save the header file temporarily
+        header_file_path = f"./{file_name}.h"
+        with open(header_file_path, 'w') as header_file:
+            header_file.write(header_content)
+        logger.info(f"Header file saved to: {header_file_path}")
 
-    # Clean up the temporary files
-    os.remove(file_path)
-    os.remove(header_file_path)
+        # Send back the converted header file
+        await update.message.reply_document(document=InputFile(header_file_path))
+
+    except Exception as e:
+        logger.error(f"Error during file conversion: {e}")
+        await update.message.reply_text("There was an error processing your file. Please try again.")
+
+    finally:
+        # Clean up the temporary files
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(header_file_path):
+            os.remove(header_file_path)
 
 # Error handler to log any errors
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -80,3 +94,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+        
