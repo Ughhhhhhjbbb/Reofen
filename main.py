@@ -16,9 +16,9 @@ file_name = ''
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Welcome! Send me a file, and I'll convert it into a C++ header file.")
+    await update.message.reply_text("Welcome! Send me any file (image or otherwise), and I'll convert it into a C++ header file.")
 
-# File handler to handle document uploads
+# File handler to handle document uploads (images and other files)
 async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global header_content, file_name
 
@@ -31,7 +31,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"File downloaded to: {file_path}")
 
     try:
-        # Read the file contents as bytes
+        # Read the file contents as bytes (supports any file type)
         with open(file_path, 'rb') as f:
             byte_content = f.read()
             logger.info(f"Read {len(byte_content)} bytes from the file.")
@@ -94,4 +94,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
